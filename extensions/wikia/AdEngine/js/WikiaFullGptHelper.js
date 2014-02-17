@@ -128,14 +128,17 @@ var WikiaFullGptHelper = function (log, window, document, adLogicPageLevelParams
 				var name,
 					value,
 					pubads = googletag.pubads(),
+					// slot name with remnant suffix, i.e. TOP_LEADERBOARD.remnant
 					slotname,
+					// clear slotname, i.e. TOP_LEADERBOARD
+					slotnameReal,
+					// id for slotDiv, i.e. TOP_LEADERBOARD_gpt or TOP_LEADERBOARD_remnant_dart
 					slotnameGpt,
 					sizes,
 					slot,
 					slotItem,
 					slotPath,
 					slotParams,
-					slotRealname,
 					isRemnant;
 
 				pubads.collapseEmptyDivs();
@@ -157,17 +160,17 @@ var WikiaFullGptHelper = function (log, window, document, adLogicPageLevelParams
 					if (slotMap.hasOwnProperty(slotname) && slotMap[slotname].size) {
 						log(['loadGpt', 'defining slot', slotname], 9, logGroup);
 
-						slotRealname = slotname;
+						slotnameReal = slotname;
 
 						if (slotname.indexOf('.remnant') !== -1) {
 							isRemnant = true;
-							slotRealname = slotname.substr(0, slotname.indexOf('.remnant'));
+							slotnameReal = slotname.substr(0, slotname.indexOf('.remnant'));
 						}
 
-						slotnameGpt = slotRealname + '_gpt';
-
 						if (isRemnant) {
-							slotnameGpt = slotnameGpt + '_remnant';
+							slotnameGpt = slotnameReal + '_remnant_dart';
+						} else {
+							slotnameGpt = slotnameReal + '_gpt';
 						}
 
 						slotItem = slotMap[slotname];
@@ -181,7 +184,7 @@ var WikiaFullGptHelper = function (log, window, document, adLogicPageLevelParams
 
 						// Per-slot targeting keys
 						slotParams = {
-							pos: slotRealname,
+							pos: slotnameReal,
 							loc: slotItem.loc
 						};
 						for (name in slotParams) {
@@ -220,11 +223,15 @@ var WikiaFullGptHelper = function (log, window, document, adLogicPageLevelParams
 	}
 
 	function pushAd(slotname, success, error, remnant) {
-		var slotnameGpt = slotname + '_gpt',
+		var slotnameGpt,
+			slotnameReal = slotname,
 			slotDiv = document.createElement('div');
 
 		if (remnant) {
-			slotnameGpt = slotnameGpt + '_remnant';
+			slotnameGpt = slotnameReal + '_remnant_dart';
+			slotname = slotname + '.remnant';
+		} else {
+			slotnameGpt = slotnameReal + '_gpt';
 		}
 
 		loadGpt();
@@ -232,7 +239,7 @@ var WikiaFullGptHelper = function (log, window, document, adLogicPageLevelParams
 		// Create a div for the GPT ad
 		slotDiv.id = slotnameGpt;
 
-		document.getElementById(slotname).appendChild(slotDiv);
+		document.getElementById(slotnameReal).appendChild(slotDiv);
 
 		log(['pushAd', slotname], 9, logGroup);
 		googletag.cmd.push(function () {
@@ -240,10 +247,6 @@ var WikiaFullGptHelper = function (log, window, document, adLogicPageLevelParams
 
 			log(['googletag.display', slotnameGpt], 9, logGroup);
 			googletag.display(slotnameGpt);
-
-			if (remnant) {
-				slotname = slotname + '.remnant';
-			}
 
 			slotQueue.push(gptSlots[slotname]);
 
