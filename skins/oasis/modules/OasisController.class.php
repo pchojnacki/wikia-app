@@ -429,26 +429,17 @@ class OasisController extends WikiaController {
 		// jQueryless version - appears only to be used by the ad-experiment at the moment.
 		$assets['oasis_nojquery_shared_js'] = $this->assetsManager->getURL( ( $wgUser->isLoggedIn() ) ? 'oasis_nojquery_shared_js_user' : 'oasis_nojquery_shared_js_anon' );
 
-		if ( !empty( $wgSpeedBox ) && !empty( $wgDevelEnvironment ) ) {
-			foreach ( $assets as $group => $urls ) {
-				foreach ( $urls as $index => $u ) {
-					$assets[$group][$index] = $this->rewriteJSlinks( $assets[$group][$index] );
-				}
+
+		$jsLoader = [];
+		foreach ( $assets as $group => $urls ) {
+			foreach ( $urls as $index => $u ) {
+				$jsLoader[] = sprintf('<script src="%s"></script>', $this->rewriteJSlinks( $assets[$group][$index] ) );
 			}
 		}
-
-		$assets['references'] = $jsReferences;
-
-		// generate code to load JS files
-		$assets = json_encode($assets);
-		$jsLoader = <<<EOT
-<script type="text/javascript">
-	var wsl_assets = {$assets};
-	var toload = wsl_assets.oasis_shared_js.concat(wsl_assets.references);
-
-	(function(){ wsl.loadScript(toload); })();
-</script>
-EOT;
+		foreach ( $jsReferences as $index => $u ) {
+			$jsLoader[] = sprintf('<script src="%s"></script>', $this->rewriteJSlinks( $jsReferences[$index] ) );
+		}
+		$jsLoader = implode(PHP_EOL, $jsLoader);
 
 		$tpl = $this->app->getSkinTemplateObj();
 
