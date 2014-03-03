@@ -433,11 +433,11 @@ class OasisController extends WikiaController {
 		$jsLoader = [];
 		foreach ( $assets as $group => $urls ) {
 			foreach ( $urls as $index => $u ) {
-				$jsLoader[] = sprintf('<script src="%s"></script>', $this->rewriteJSlinks( $assets[$group][$index] ) );
+				$jsLoader[] = sprintf('<script asyc src="%s"></script>', $this->rewriteJSlinks( $assets[$group][$index] ) );
 			}
 		}
 		foreach ( $jsReferences as $index => $u ) {
-			$jsLoader[] = sprintf('<script src="%s"></script>', $this->rewriteJSlinks( $jsReferences[$index] ) );
+			$jsLoader[] = sprintf('<script async src="%s"></script>', $this->rewriteJSlinks( $jsReferences[$index] ) );
 		}
 		$jsLoader = implode(PHP_EOL, $jsLoader);
 
